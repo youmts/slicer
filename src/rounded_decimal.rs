@@ -31,10 +31,7 @@ impl error::Error for RoundedDecimalParseError {
 
 impl RoundedDecimal {
     pub fn from(value: i64) -> Self {
-        RoundedDecimal {
-            value,
-            places: 0,
-        }
+        RoundedDecimal { value, places: 0 }
     }
 }
 
@@ -50,30 +47,18 @@ impl FromStr for RoundedDecimal {
         } else if len == 1 {
             let value: i64 = value.parse()?;
 
-            RoundedDecimalParseResult::Ok(
-                RoundedDecimal {
-                    value,
-                    places: 0,
-                },
-            )
+            RoundedDecimalParseResult::Ok(RoundedDecimal { value, places: 0 })
         } else if len == 2 {
             let places: usize = v[1].len();
             let left: i64 = v[0].parse()?;
             let right: i64 = v[1].parse()?;
             let value = left * 10i64.pow(places.try_into()?) + right;
 
-            RoundedDecimalParseResult::Ok(
-                RoundedDecimal {
-                    value,
-                    places,
-                },
-            )
+            RoundedDecimalParseResult::Ok(RoundedDecimal { value, places })
         } else {
-            RoundedDecimalParseResult::Err(
-                Box::new(
-                    RoundedDecimalParseError {description: "Invalid dot number."}
-                )
-            )
+            RoundedDecimalParseResult::Err(Box::new(RoundedDecimalParseError {
+                description: "Invalid dot number.",
+            }))
         }
     }
 }
@@ -98,7 +83,10 @@ impl ops::Add<RoundedDecimal> for RoundedDecimal {
             panic!("places mismatch");
         }
 
-        RoundedDecimal {value: self.value + _rhs.value, places: self.places}
+        RoundedDecimal {
+            value: self.value + _rhs.value,
+            places: self.places,
+        }
     }
 }
 
@@ -110,7 +98,10 @@ impl ops::Sub<RoundedDecimal> for RoundedDecimal {
             panic!("places mismatch");
         }
 
-        RoundedDecimal {value: self.value - _rhs.value, places: self.places}
+        RoundedDecimal {
+            value: self.value - _rhs.value,
+            places: self.places,
+        }
     }
 }
 
@@ -119,7 +110,10 @@ impl ops::Mul<RoundedDecimal> for RoundedDecimal {
 
     fn mul(self, _rhs: RoundedDecimal) -> RoundedDecimal {
         let n = 10i64.pow(_rhs.places as u32);
-        RoundedDecimal {value: self.value * _rhs.value / n, places: self.places}
+        RoundedDecimal {
+            value: self.value * _rhs.value / n,
+            places: self.places,
+        }
     }
 }
 
@@ -128,7 +122,10 @@ impl ops::Div<RoundedDecimal> for RoundedDecimal {
 
     fn div(self, _rhs: RoundedDecimal) -> RoundedDecimal {
         let n = 10i64.pow(_rhs.places as u32);
-        RoundedDecimal {value: self.value * n / _rhs.value, places: self.places}
+        RoundedDecimal {
+            value: self.value * n / _rhs.value,
+            places: self.places,
+        }
     }
 }
 
@@ -246,4 +243,3 @@ mod tests {
         }
     }
 }
-
