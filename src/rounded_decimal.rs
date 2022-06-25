@@ -1,6 +1,7 @@
 use std::error;
 use std::fmt;
 use std::fmt::Display;
+use std::ops;
 
 #[derive(Debug, PartialEq, Eq)]
 pub struct RoundedDecimal {
@@ -84,10 +85,58 @@ impl Display for RoundedDecimal {
     }
 }
 
+impl ops::Add<RoundedDecimal> for RoundedDecimal {
+    type Output = RoundedDecimal;
+
+    fn add(self, _rhs: RoundedDecimal) -> RoundedDecimal {
+        if self.places != _rhs.places {
+            panic!("places mismatch");
+        }
+
+        RoundedDecimal {value: self.value + _rhs.value, places: self.places}
+    }
+}
+
+impl ops::Sub<RoundedDecimal> for RoundedDecimal {
+    type Output = RoundedDecimal;
+
+    fn sub(self, _rhs: RoundedDecimal) -> RoundedDecimal {
+        if self.places != _rhs.places {
+            panic!("places mismatch");
+        }
+
+        RoundedDecimal {value: self.value - _rhs.value, places: self.places}
+    }
+}
+
+impl ops::Mul<RoundedDecimal> for RoundedDecimal {
+    type Output = RoundedDecimal;
+
+    fn mul(self, _rhs: RoundedDecimal) -> RoundedDecimal {
+        let n = 10i64.pow(_rhs.places as u32);
+        RoundedDecimal {value: self.value * _rhs.value / n, places: self.places}
+    }
+}
+
+impl ops::Div<RoundedDecimal> for RoundedDecimal {
+    type Output = RoundedDecimal;
+
+    fn div(self, _rhs: RoundedDecimal) -> RoundedDecimal {
+        let n = 10i64.pow(_rhs.places as u32);
+        RoundedDecimal {value: self.value * n / _rhs.value, places: self.places}
+    }
+}
+
 #[cfg(test)]
 mod tests {
+    use super::*;
+
+    fn from(value: &str) -> RoundedDecimal {
+        RoundedDecimal::from_str(value).ok().unwrap()
+    }
+
     mod constructors {
-        use super::super::*;
+        use super::*;
 
         #[test]
         fn from_1() {
@@ -104,7 +153,7 @@ mod tests {
 
         #[test]
         fn from_str_0_1() {
-            let n = RoundedDecimal::from_str("0.1").ok().unwrap();
+            let n = from("0.1");
 
             assert_eq!(
                 RoundedDecimal {
@@ -119,7 +168,7 @@ mod tests {
 
         #[test]
         fn from_str_0_10() {
-            let n = RoundedDecimal::from_str("0.10").ok().unwrap();
+            let n = from("0.10");
 
             assert_eq!(
                 RoundedDecimal {
@@ -134,7 +183,7 @@ mod tests {
 
         #[test]
         fn from_str_1() {
-            let n = RoundedDecimal::from_str("1").ok().unwrap();
+            let n = from("1");
 
             assert_eq!(
                 RoundedDecimal {
@@ -151,6 +200,44 @@ mod tests {
         fn from_str_not_number() {
             RoundedDecimal::from_str("a").err().unwrap();
             RoundedDecimal::from_str("a.a").err().unwrap();
+        }
+    }
+
+    mod operators {
+        use super::*;
+
+        #[test]
+        fn add() {
+            assert_eq!(from("0.2"), from("0.1") + from("0.1"));
+        }
+
+        #[test]
+        #[should_panic]
+        fn add_different_places() {
+            let _ = from("0.1") + from("0.01");
+        }
+
+        #[test]
+        fn sub() {
+            assert_eq!(from("0.1"), from("0.2") - from("0.1"));
+        }
+
+        #[test]
+        #[should_panic]
+        fn sub_different_places() {
+            let _ = from("0.2") - from("0.01");
+        }
+
+        #[test]
+        fn mul() {
+            assert_eq!(from("0.2"), from("0.1") * from("2"));
+            assert_eq!(from("0"), from("2") * from("0.1"));
+        }
+
+        #[test]
+        fn div() {
+            assert_eq!(from("0.0"), from("0.1") / from("2"));
+            assert_eq!(from("20"), from("2") / from("0.1"));
         }
     }
 }
