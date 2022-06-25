@@ -2,6 +2,7 @@ use std::error;
 use std::fmt;
 use std::fmt::Display;
 use std::ops;
+use std::str::FromStr;
 
 #[derive(Debug, PartialEq, Eq)]
 pub struct RoundedDecimal {
@@ -31,12 +32,16 @@ impl error::Error for RoundedDecimalParseError {
 impl RoundedDecimal {
     pub fn from(value: i64) -> Self {
         RoundedDecimal {
-            value: value,
+            value,
             places: 0,
         }
     }
+}
 
-    pub fn from_str(value: &str) -> RoundedDecimalParseResult {
+impl FromStr for RoundedDecimal {
+    type Err = Box<dyn error::Error>;
+
+    fn from_str(value: &str) -> Result<Self, Self::Err> {
         let v: Vec<&str> = value.split('.').collect();
         let len = v.len();
 
@@ -47,7 +52,7 @@ impl RoundedDecimal {
 
             RoundedDecimalParseResult::Ok(
                 RoundedDecimal {
-                    value: value,
+                    value,
                     places: 0,
                 },
             )
@@ -59,8 +64,8 @@ impl RoundedDecimal {
 
             RoundedDecimalParseResult::Ok(
                 RoundedDecimal {
-                    value: value,
-                    places: places,
+                    value,
+                    places,
                 },
             )
         } else {
