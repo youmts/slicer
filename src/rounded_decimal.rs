@@ -4,7 +4,7 @@ use std::fmt::Display;
 use std::ops;
 use std::str::FromStr;
 
-#[derive(Debug, PartialEq, Eq)]
+#[derive(Debug, PartialEq, Eq, Copy, Clone)]
 pub struct RoundedDecimal {
     value: i64,
     places: usize,
@@ -99,6 +99,12 @@ impl ops::Add<RoundedDecimal> for RoundedDecimal {
     }
 }
 
+impl ops::AddAssign<RoundedDecimal> for RoundedDecimal {
+    fn add_assign(&mut self, rhs: RoundedDecimal) {
+        *self = *self + rhs;
+    }
+}
+
 impl ops::Sub<RoundedDecimal> for RoundedDecimal {
     type Output = RoundedDecimal;
 
@@ -114,6 +120,12 @@ impl ops::Sub<RoundedDecimal> for RoundedDecimal {
     }
 }
 
+impl ops::SubAssign<RoundedDecimal> for RoundedDecimal {
+    fn sub_assign(&mut self, rhs: RoundedDecimal) {
+        *self = *self - rhs;
+    }
+}
+
 impl ops::Mul<RoundedDecimal> for RoundedDecimal {
     type Output = RoundedDecimal;
 
@@ -126,6 +138,12 @@ impl ops::Mul<RoundedDecimal> for RoundedDecimal {
     }
 }
 
+impl ops::MulAssign<RoundedDecimal> for RoundedDecimal {
+    fn mul_assign(&mut self, rhs: RoundedDecimal) {
+        *self = *self * rhs;
+    }
+}
+
 impl ops::Div<RoundedDecimal> for RoundedDecimal {
     type Output = RoundedDecimal;
 
@@ -135,6 +153,12 @@ impl ops::Div<RoundedDecimal> for RoundedDecimal {
             value: self.value * n / rhs.value,
             places: self.places,
         }
+    }
+}
+
+impl ops::DivAssign<RoundedDecimal> for RoundedDecimal {
+    fn div_assign(&mut self, rhs: RoundedDecimal) {
+        *self = *self / rhs;
     }
 }
 
@@ -238,6 +262,13 @@ mod tests {
         }
 
         #[test]
+        fn add_assign() {
+            let mut value = from("0.1");
+            value += from("0.1");
+            assert_eq!(from("0.2"), value);
+        }
+
+        #[test]
         #[should_panic]
         fn add_different_places() {
             let _ = from("0.1") + from("0.01");
@@ -246,6 +277,13 @@ mod tests {
         #[test]
         fn sub() {
             assert_eq!(from("0.1"), from("0.2") - from("0.1"));
+        }
+
+        #[test]
+        fn sub_assign() {
+            let mut value = from("0.2");
+            value -= from("0.1");
+            assert_eq!(from("0.1"), value);
         }
 
         #[test]
@@ -261,9 +299,23 @@ mod tests {
         }
 
         #[test]
+        fn mul_assign() {
+            let mut value = from("0.1");
+            value *= from("2");
+            assert_eq!(from("0.2"), value);
+        }
+
+        #[test]
         fn div() {
             assert_eq!(from("0.0"), from("0.1") / from("2"));
             assert_eq!(from("20"), from("2") / from("0.1"));
+        }
+
+        #[test]
+        fn div_assign() {
+            let mut value = from("2");
+            value /= from("0.1");
+            assert_eq!(from("20"), value);
         }
     }
 }
