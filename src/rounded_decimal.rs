@@ -43,7 +43,7 @@ impl FromStr for RoundedDecimal {
         let len = v.len();
 
         if len == 0 {
-            panic!("Never come");
+            panic!("Never come.");
         } else if len == 1 {
             let value: i64 = value.parse()?;
 
@@ -52,12 +52,12 @@ impl FromStr for RoundedDecimal {
             let places: usize = v[1].len();
             let left: i64 = v[0].parse()?;
             let right: i64 = v[1].parse()?;
-            let value = left * 10i64.pow(places.try_into()?) + right;
+            let value = left * 10i64.pow(places as u32) + right;
 
             RoundedDecimalParseResult::Ok(RoundedDecimal { value, places })
         } else {
             RoundedDecimalParseResult::Err(Box::new(RoundedDecimalParseError {
-                description: "Invalid dot number.",
+                description: "Invalid dot count.",
             }))
         }
     }
@@ -65,12 +65,21 @@ impl FromStr for RoundedDecimal {
 
 impl Display for RoundedDecimal {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        fn zero_aligned(value: i64, places: usize) -> String {
+            let value_str = value.to_string();
+            let mut zeros = "".to_owned();
+            for _ in value_str.len()..places {
+                zeros += "0"
+            }
+            zeros + &value_str
+        }
+
         if self.places == 0 {
             write!(f, "{}", self.value)
         } else {
-            let left = self.value / 10i64.pow(self.places.try_into().unwrap());
+            let left = self.value / 10i64.pow(self.places as u32);
             let right = self.value - left;
-            write!(f, "{}.{}", left, right)
+            write!(f, "{}.{}", left, zero_aligned(right, self.places))
         }
     }
 }
@@ -78,13 +87,13 @@ impl Display for RoundedDecimal {
 impl ops::Add<RoundedDecimal> for RoundedDecimal {
     type Output = RoundedDecimal;
 
-    fn add(self, _rhs: RoundedDecimal) -> RoundedDecimal {
-        if self.places != _rhs.places {
-            panic!("places mismatch");
+    fn add(self, rhs: RoundedDecimal) -> RoundedDecimal {
+        if self.places != rhs.places {
+            panic!("Places mismatch. : {} + {}", self, rhs);
         }
 
         RoundedDecimal {
-            value: self.value + _rhs.value,
+            value: self.value + rhs.value,
             places: self.places,
         }
     }
@@ -93,13 +102,13 @@ impl ops::Add<RoundedDecimal> for RoundedDecimal {
 impl ops::Sub<RoundedDecimal> for RoundedDecimal {
     type Output = RoundedDecimal;
 
-    fn sub(self, _rhs: RoundedDecimal) -> RoundedDecimal {
-        if self.places != _rhs.places {
-            panic!("places mismatch");
+    fn sub(self, rhs: RoundedDecimal) -> RoundedDecimal {
+        if self.places != rhs.places {
+            panic!("Places mismatch. : {} - {}", self, rhs);
         }
 
         RoundedDecimal {
-            value: self.value - _rhs.value,
+            value: self.value - rhs.value,
             places: self.places,
         }
     }
@@ -108,10 +117,10 @@ impl ops::Sub<RoundedDecimal> for RoundedDecimal {
 impl ops::Mul<RoundedDecimal> for RoundedDecimal {
     type Output = RoundedDecimal;
 
-    fn mul(self, _rhs: RoundedDecimal) -> RoundedDecimal {
-        let n = 10i64.pow(_rhs.places as u32);
+    fn mul(self, rhs: RoundedDecimal) -> RoundedDecimal {
+        let n = 10i64.pow(rhs.places as u32);
         RoundedDecimal {
-            value: self.value * _rhs.value / n,
+            value: self.value * rhs.value / n,
             places: self.places,
         }
     }
@@ -120,10 +129,10 @@ impl ops::Mul<RoundedDecimal> for RoundedDecimal {
 impl ops::Div<RoundedDecimal> for RoundedDecimal {
     type Output = RoundedDecimal;
 
-    fn div(self, _rhs: RoundedDecimal) -> RoundedDecimal {
-        let n = 10i64.pow(_rhs.places as u32);
+    fn div(self, rhs: RoundedDecimal) -> RoundedDecimal {
+        let n = 10i64.pow(rhs.places as u32);
         RoundedDecimal {
-            value: self.value * n / _rhs.value,
+            value: self.value * n / rhs.value,
             places: self.places,
         }
     }
@@ -181,6 +190,21 @@ mod tests {
             );
 
             assert_eq!("0.10", format!("{}", n))
+        }
+
+        #[test]
+        fn from_str_0_01() {
+            let n = from("0.01");
+
+            assert_eq!(
+                RoundedDecimal {
+                    value: 1,
+                    places: 2
+                },
+                n
+            );
+
+            assert_eq!("0.01", format!("{}", n))
         }
 
         #[test]
