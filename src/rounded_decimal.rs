@@ -130,9 +130,9 @@ impl ops::Mul<RoundedDecimal> for RoundedDecimal {
     type Output = RoundedDecimal;
 
     fn mul(self, rhs: RoundedDecimal) -> RoundedDecimal {
-        let n = 10i64.pow(rhs.places as u32);
+        let scale = 10i64.pow(rhs.places as u32);
         RoundedDecimal {
-            value: self.value * rhs.value / n,
+            value: self.value * rhs.value / scale,
             places: self.places,
         }
     }
@@ -148,9 +148,9 @@ impl ops::Div<RoundedDecimal> for RoundedDecimal {
     type Output = RoundedDecimal;
 
     fn div(self, rhs: RoundedDecimal) -> RoundedDecimal {
-        let n = 10i64.pow(rhs.places as u32);
+        let scale = 10i64.pow(rhs.places as u32);
         RoundedDecimal {
-            value: self.value * n / rhs.value,
+            value: self.value * scale / rhs.value,
             places: self.places,
         }
     }
