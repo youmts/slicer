@@ -15,10 +15,17 @@ where
         dest_ll.push_back(d)
     }
 
+    // TODO: a little slow algorithm
     let mut x = 0i32;
     for d in dest_ll.iter() {
         x += d.get_key();
         src_ll = slice_list(src_ll, x);
+    }
+
+    let mut x: i32 = 0i32;
+    for s in src_ll.iter() {
+        x += s.get_key();
+        dest_ll = slice_list(dest_ll, x);
     }
 
     zip(src_ll.into_iter(), dest_ll.into_iter()).collect::<Vec<(S, D)>>()
@@ -33,10 +40,16 @@ where
     for item in list {
         let v = item.get_key();
         if x < at && at < x + v {
-            // TODO: split it
-            result.push_back(item);
-            result.push_back(item);
+            // NOTE: split element
+            let mut a = item;
+            *a.get_mut_key() = at - x;
+            result.push_back(a);
+
+            let mut b = item;
+            *b.get_mut_key() = x + v - at;
+            result.push_back(b);
         } else {
+            // NOTE: no split element
             result.push_back(item);
         }
         x += item.get_key();
@@ -46,7 +59,8 @@ where
 }
 
 pub trait SliceItem<K> {
-    fn get_key(&self) -> &K;
+    fn get_key(&self) -> K;
+    fn get_mut_key(&mut self) -> &mut K;
 }
 
 #[cfg(test)]
@@ -61,8 +75,11 @@ mod tests {
     }
 
     impl SliceItem<i32> for Src<'_> {
-        fn get_key(&self) -> &i32 {
-            &self.qty
+        fn get_key(&self) -> i32 {
+            self.qty
+        }
+        fn get_mut_key(&mut self) -> &mut i32 {
+            &mut self.qty
         }
     }
 
@@ -73,13 +90,15 @@ mod tests {
     }
 
     impl SliceItem<i32> for Dest<'_> {
-        fn get_key(&self) -> &i32 {
-            &self.qty
+        fn get_key(&self) -> i32 {
+            self.qty
+        }
+        fn get_mut_key(&mut self) -> &mut i32 {
+            &mut self.qty
         }
     }
 
     #[test]
-    #[ignore]
     fn slice_same_range() {
         let key_a = &"a".to_owned();
         let key_b = &"b".to_owned();
