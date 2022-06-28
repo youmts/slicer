@@ -4,21 +4,29 @@ use std::iter::*;
 
 pub fn slice_item<T>(item: T, slice_x: i32) -> (T, T)
 where
-    T: SliceItem<i32> + Copy + std::fmt::Debug,
+    T: SliceItem<i32, i32> + Copy + std::fmt::Debug,
 {
+    let item_x = item.get_key();
+
     let mut left = item;
     *left.get_mut_key() = slice_x;
+    for value in left.get_mut_values().into_iter() {
+        *value = *value * slice_x / item_x;
+    }
 
     let mut right = item;
-    *right.get_mut_key() = item.get_key() - slice_x;
+    *right.get_mut_key() = item_x - slice_x;
+    for value in right.get_mut_values().into_iter() {
+        *value = *value * (item_x - slice_x) / item_x;
+    }
 
     (left, right)
 }
 
 pub fn slice<S, D>(src: Vec<S>, dest: Vec<D>) -> Vec<(S, D)>
 where
-    S: SliceItem<i32> + Copy + std::fmt::Debug,
-    D: SliceItem<i32> + Copy + std::fmt::Debug,
+    S: SliceItem<i32, i32> + Copy + std::fmt::Debug,
+    D: SliceItem<i32, i32> + Copy + std::fmt::Debug,
 {
     let mut src_ret = Vec::new();
     let mut dest_ret = Vec::new();
@@ -99,9 +107,11 @@ where
     zip(src_ret.into_iter(), dest_ret.into_iter()).collect::<Vec<(S, D)>>()
 }
 
-pub trait SliceItem<K> {
+// TODO: change to lambda
+pub trait SliceItem<K, V> {
     fn get_key(&self) -> K;
     fn get_mut_key(&mut self) -> &mut K;
+    fn get_mut_values(&mut self) -> Vec<&mut V>;
 }
 
 #[cfg(test)]
@@ -115,12 +125,15 @@ mod tests {
         price: i32,
     }
 
-    impl SliceItem<i32> for Src<'_> {
+    impl SliceItem<i32, i32> for Src<'_> {
         fn get_key(&self) -> i32 {
             self.qty
         }
         fn get_mut_key(&mut self) -> &mut i32 {
             &mut self.qty
+        }
+        fn get_mut_values(&mut self) -> Vec<&mut i32> {
+            vec![&mut self.price]
         }
     }
 
@@ -130,12 +143,15 @@ mod tests {
         qty: i32,
     }
 
-    impl SliceItem<i32> for Dest<'_> {
+    impl SliceItem<i32, i32> for Dest<'_> {
         fn get_key(&self) -> i32 {
             self.qty
         }
         fn get_mut_key(&mut self) -> &mut i32 {
             &mut self.qty
+        }
+        fn get_mut_values(&mut self) -> Vec<&mut i32> {
+            vec![]
         }
     }
 
@@ -168,14 +184,13 @@ mod tests {
 
         let result = slice(src, dest);
 
-        // TODO: fix price(sliced)
         assert_eq!(
             vec![
                 (
                     Src {
                         key: key_a,
                         qty: 3,
-                        price: 50
+                        price: 30
                     },
                     Dest { key: key_x, qty: 3 }
                 ),
@@ -183,7 +198,7 @@ mod tests {
                     Src {
                         key: key_a,
                         qty: 2,
-                        price: 50
+                        price: 20
                     },
                     Dest { key: key_y, qty: 2 }
                 ),
@@ -191,7 +206,7 @@ mod tests {
                     Src {
                         key: key_b,
                         qty: 2,
-                        price: 100
+                        price: 40
                     },
                     Dest { key: key_y, qty: 2 }
                 ),
@@ -199,7 +214,7 @@ mod tests {
                     Src {
                         key: key_b,
                         qty: 3,
-                        price: 100
+                        price: 60
                     },
                     Dest { key: key_z, qty: 3 }
                 ),
