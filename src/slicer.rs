@@ -2,6 +2,19 @@ use core::panic;
 use std::cmp::Ordering;
 use std::iter::*;
 
+pub fn slice_item<T>(item: T, slice_x: i32) -> (T, T)
+where
+    T: SliceItem<i32> + Copy + std::fmt::Debug,
+{
+    let mut left = item;
+    *left.get_mut_key() = slice_x;
+
+    let mut right = item;
+    *right.get_mut_key() = item.get_key() - slice_x;
+
+    (left, right)
+}
+
 pub fn slice<S, D>(src: Vec<S>, dest: Vec<D>) -> Vec<(S, D)>
 where
     S: SliceItem<i32> + Copy + std::fmt::Debug,
@@ -39,17 +52,9 @@ where
             Ordering::Greater => {
                 dest_ret.push(*dest_item);
 
-                src_ret.push({
-                    let mut left = *src_item;
-                    *left.get_mut_key() = dest_key;
-                    left
-                });
-
-                src_item = Box::new({
-                    let mut right = *src_item;
-                    *right.get_mut_key() = src_key - dest_key;
-                    right
-                });
+                let (left, right) = slice_item(*src_item, dest_key);
+                src_ret.push(left);
+                src_item = Box::new(right);
 
                 src_x = dest_x_next;
                 dest_x = dest_x_next;
@@ -62,17 +67,9 @@ where
             Ordering::Less => {
                 src_ret.push(*src_item);
 
-                dest_ret.push({
-                    let mut left = *dest_item;
-                    *left.get_mut_key() = src_key;
-                    left
-                });
-
-                dest_item = Box::new({
-                    let mut right = *dest_item;
-                    *right.get_mut_key() = dest_key - src_key;
-                    right
-                });
+                let (left, right) = slice_item(*dest_item, src_key);
+                dest_ret.push(left);
+                dest_item = Box::new(right);
 
                 src_x = src_x_next;
                 dest_x = src_x_next;
