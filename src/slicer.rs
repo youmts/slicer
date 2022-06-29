@@ -31,8 +31,8 @@ where
     let mut src_ret = Vec::new();
     let mut dest_ret = Vec::new();
 
-    let mut src_iter = src.iter();
-    let mut dest_iter = dest.iter();
+    let mut src_iter = src.into_iter();
+    let mut dest_iter = dest.into_iter();
 
     let src_item = src_iter.next();
     let dest_item = dest_iter.next();
@@ -44,8 +44,8 @@ where
         panic!("Dest must not be empty array.")
     }
 
-    let mut src_item = Box::new(*src_item.unwrap());
-    let mut dest_item = Box::new(*dest_item.unwrap());
+    let mut src_item = Box::new(src_item.unwrap());
+    let mut dest_item = Box::new(dest_item.unwrap());
 
     let mut src_x = 0;
     let mut dest_x = 0;
@@ -68,7 +68,7 @@ where
                 dest_x = dest_x_next;
 
                 dest_item = match dest_iter.next() {
-                    Some(item) => Box::new(*item),
+                    Some(item) => Box::new(item),
                     None => break,
                 };
             }
@@ -83,7 +83,7 @@ where
                 dest_x = src_x_next;
 
                 src_item = match src_iter.next() {
-                    Some(item) => Box::new(*item),
+                    Some(item) => Box::new(item),
                     None => break,
                 };
             }
@@ -92,12 +92,12 @@ where
                 dest_ret.push(*dest_item);
 
                 src_item = match src_iter.next() {
-                    Some(item) => Box::new(*item),
+                    Some(item) => Box::new(item),
                     None => break,
                 };
 
                 dest_item = match dest_iter.next() {
-                    Some(item) => Box::new(*item),
+                    Some(item) => Box::new(item),
                     None => break,
                 };
             }
