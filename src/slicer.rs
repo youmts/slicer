@@ -30,8 +30,7 @@ where
     S: SliceItem<i32, i32> + Copy + std::fmt::Debug,
     D: SliceItem<i32, i32> + Copy + std::fmt::Debug,
 {
-    let mut src_ret = Vec::new();
-    let mut dest_ret = Vec::new();
+    let mut ret = Vec::new();
 
     let mut src_iter = src.into_iter();
     let mut dest_iter = dest.into_iter();
@@ -60,56 +59,54 @@ where
 
         match src_x_next.cmp(&dest_x_next) {
             Ordering::Greater => {
-                dest_ret.push(*dest_item);
-
                 let (left, right) = slice_item(*src_item, dest_key);
-                src_ret.push(left);
+
+                ret.push((left, *dest_item));
+
                 src_item = Box::new(right);
-
-                src_x = dest_x_next;
-                dest_x = dest_x_next;
-
                 dest_item = match dest_iter.next() {
                     Some(item) => Box::new(item),
                     None => break,
                 };
+
+                src_x = dest_x_next;
+                dest_x = dest_x_next;
             }
             Ordering::Less => {
-                src_ret.push(*src_item);
-
                 let (left, right) = slice_item(*dest_item, src_key);
-                dest_ret.push(left);
+
+                ret.push((*src_item, left));
+
+                src_item = match src_iter.next() {
+                    Some(item) => Box::new(item),
+                    None => break,
+                };
                 dest_item = Box::new(right);
 
                 src_x = src_x_next;
                 dest_x = src_x_next;
-
-                src_item = match src_iter.next() {
-                    Some(item) => Box::new(item),
-                    None => break,
-                };
             }
             Ordering::Equal => {
-                src_ret.push(*src_item);
-                dest_ret.push(*dest_item);
+                ret.push((*src_item, *dest_item));
 
                 src_item = match src_iter.next() {
                     Some(item) => Box::new(item),
                     None => break,
                 };
-
                 dest_item = match dest_iter.next() {
                     Some(item) => Box::new(item),
                     None => break,
                 };
+
+                src_x = src_x_next;
+                dest_x = dest_x_next;
             }
         }
     }
 
-    zip(src_ret.into_iter(), dest_ret.into_iter()).collect::<Vec<(S, D)>>()
+    ret
 }
 
-// TODO: change to lambda
 pub trait SliceItem<K, V> {
     fn get_key(&self) -> K;
     fn get_mut_key(&mut self) -> &mut K;
