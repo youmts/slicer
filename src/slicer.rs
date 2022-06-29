@@ -14,10 +14,12 @@ where
         *value = *value * slice_x / item_x;
     }
 
+    let left_values = left.get_values();
+    let mut left_values_iter = left_values.iter();
     let mut right = item;
     *right.get_mut_key() = item_x - slice_x;
     for value in right.get_mut_values().into_iter() {
-        *value = *value * (item_x - slice_x) / item_x;
+        *value -= left_values_iter.next().unwrap();
     }
 
     (left, right)
@@ -111,6 +113,7 @@ where
 pub trait SliceItem<K, V> {
     fn get_key(&self) -> K;
     fn get_mut_key(&mut self) -> &mut K;
+    fn get_values(&self) -> Vec<V>;
     fn get_mut_values(&mut self) -> Vec<&mut V>;
 }
 
@@ -132,6 +135,9 @@ mod tests {
         fn get_mut_key(&mut self) -> &mut i32 {
             &mut self.qty
         }
+        fn get_values(&self) -> Vec<i32> {
+            vec![self.price]
+        }
         fn get_mut_values(&mut self) -> Vec<&mut i32> {
             vec![&mut self.price]
         }
@@ -150,6 +156,9 @@ mod tests {
         fn get_mut_key(&mut self) -> &mut i32 {
             &mut self.qty
         }
+        fn get_values(&self) -> Vec<i32> {
+            vec![]
+        }
         fn get_mut_values(&mut self) -> Vec<&mut i32> {
             vec![]
         }
@@ -167,12 +176,12 @@ mod tests {
             Src {
                 key: key_a,
                 qty: 5,
-                price: 50,
+                price: 51,
             },
             Src {
                 key: key_b,
                 qty: 5,
-                price: 100,
+                price: 101,
             },
         ];
 
@@ -198,7 +207,7 @@ mod tests {
                     Src {
                         key: key_a,
                         qty: 2,
-                        price: 20
+                        price: 21
                     },
                     Dest { key: key_y, qty: 2 }
                 ),
@@ -214,7 +223,7 @@ mod tests {
                     Src {
                         key: key_b,
                         qty: 3,
-                        price: 60
+                        price: 61
                     },
                     Dest { key: key_z, qty: 3 }
                 ),
