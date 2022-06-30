@@ -2,13 +2,13 @@ use core::panic;
 use std::cmp::Ordering;
 use std::iter::*;
 
-pub fn slice_item<T>(item: T, slice_x: i32) -> (T, T)
+pub fn slice_item<T>(item: &T, slice_x: i32) -> (T, T)
 where
     T: SliceItem<i32, i32> + Copy + std::fmt::Debug,
 {
     let item_x = item.get_key();
 
-    let mut left = item;
+    let mut left = *item;
     *left.get_mut_key() = slice_x;
     for value in left.get_mut_values().into_iter() {
         *value = *value * slice_x / item_x;
@@ -16,7 +16,7 @@ where
 
     let left_values = left.get_values();
     let mut left_values_iter = left_values.iter();
-    let mut right = item;
+    let mut right = *item;
     *right.get_mut_key() = item_x - slice_x;
     for value in right.get_mut_values().into_iter() {
         *value -= left_values_iter.next().unwrap();
@@ -59,7 +59,7 @@ where
 
         match src_x_next.cmp(&dest_x_next) {
             Ordering::Greater => {
-                let (left, right) = slice_item(*src_item, dest_key);
+                let (left, right) = slice_item(&*src_item, dest_key);
 
                 ret.push((left, *dest_item));
 
@@ -73,7 +73,7 @@ where
                 dest_x = dest_x_next;
             }
             Ordering::Less => {
-                let (left, right) = slice_item(*dest_item, src_key);
+                let (left, right) = slice_item(&*dest_item, src_key);
 
                 ret.push((*src_item, left));
 
@@ -159,6 +159,63 @@ mod tests {
         fn get_mut_values(&mut self) -> Vec<&mut i32> {
             vec![]
         }
+    }
+
+    #[test]
+    fn slice_item_test() {
+        let item = Src {
+            key: &"a".to_owned(),
+            qty: 2,
+            price: 3,
+        };
+
+        assert_eq!(
+            (
+                Src {
+                    key: &"a".to_owned(),
+                    qty: 0,
+                    price: 0
+                },
+                Src {
+                    key: &"a".to_owned(),
+                    qty: 2,
+                    price: 3
+                },
+            ),
+            slice_item(&item, 0)
+        );
+
+        assert_eq!(
+            (
+                Src {
+                    key: &"a".to_owned(),
+                    qty: 1,
+                    price: 1
+                },
+                Src {
+                    key: &"a".to_owned(),
+                    qty: 1,
+                    price: 2
+                },
+            ),
+            slice_item(&item, 1)
+        );
+
+        assert_eq!(
+            (
+                Src {
+                    key: &"a".to_owned(),
+                    qty: 2,
+                    price: 3
+                },
+                Src {
+                    key: &"a".to_owned(),
+                    qty: 0,
+                    price: 0
+                },
+            ),
+            slice_item(&item, 2)
+        );
     }
 
     #[test]
