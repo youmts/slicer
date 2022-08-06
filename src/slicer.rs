@@ -1,10 +1,12 @@
 use core::panic;
+use num::Num;
 use std::cmp::Ordering;
 use std::iter::*;
 
-pub fn slice_item<T>(item: T, slice_x: i32) -> (T, T)
+pub fn slice_item<T, V>(item: T, slice_x: V) -> (T, T)
 where
-    T: SliceItem<i32, i32> + Clone + std::fmt::Debug,
+    T: SliceItem<V, V> + Clone + std::fmt::Debug,
+    V: Num + Copy,
 {
     let item_x = item.get_key();
 
@@ -19,16 +21,17 @@ where
     let mut right = item;
     *right.get_mut_key() = item_x - slice_x;
     for value in right.get_mut_values().into_iter() {
-        *value -= left_values_iter.next().unwrap();
+        *value = *value - *left_values_iter.next().unwrap();
     }
 
     (left, right)
 }
 
-pub fn slice<S, D>(src: Vec<S>, dest: Vec<D>) -> Vec<(S, D)>
+pub fn slice<S, D, V>(src: Vec<S>, dest: Vec<D>) -> Vec<(S, D)>
 where
-    S: SliceItem<i32, i32> + Clone + std::fmt::Debug,
-    D: SliceItem<i32, i32> + Clone + std::fmt::Debug,
+    S: SliceItem<V, V> + Clone + std::fmt::Debug,
+    D: SliceItem<V, V> + Clone + std::fmt::Debug,
+    V: Num + Copy + Ord,
 {
     let mut ret = Vec::new();
 
@@ -48,8 +51,8 @@ where
     let mut src_item = Box::new(src_item.unwrap());
     let mut dest_item = Box::new(dest_item.unwrap());
 
-    let mut src_x = 0;
-    let mut dest_x = 0;
+    let mut src_x = V::zero();
+    let mut dest_x = V::zero();
 
     loop {
         let src_key = src_item.get_key();
