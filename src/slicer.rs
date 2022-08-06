@@ -2,13 +2,13 @@ use core::panic;
 use std::cmp::Ordering;
 use std::iter::*;
 
-pub fn slice_item<T>(item: &T, slice_x: i32) -> (T, T)
+pub fn slice_item<T>(item: T, slice_x: i32) -> (T, T)
 where
-    T: SliceItem<i32, i32> + Copy + std::fmt::Debug,
+    T: SliceItem<i32, i32> + Clone + std::fmt::Debug,
 {
     let item_x = item.get_key();
 
-    let mut left = *item;
+    let mut left = item.clone();
     *left.get_mut_key() = slice_x;
     for value in left.get_mut_values().into_iter() {
         *value = *value * slice_x / item_x;
@@ -16,7 +16,7 @@ where
 
     let left_values = left.get_values();
     let mut left_values_iter = left_values.iter();
-    let mut right = *item;
+    let mut right = item;
     *right.get_mut_key() = item_x - slice_x;
     for value in right.get_mut_values().into_iter() {
         *value -= left_values_iter.next().unwrap();
@@ -27,8 +27,8 @@ where
 
 pub fn slice<S, D>(src: Vec<S>, dest: Vec<D>) -> Vec<(S, D)>
 where
-    S: SliceItem<i32, i32> + Copy + std::fmt::Debug,
-    D: SliceItem<i32, i32> + Copy + std::fmt::Debug,
+    S: SliceItem<i32, i32> + Clone + std::fmt::Debug,
+    D: SliceItem<i32, i32> + Clone + std::fmt::Debug,
 {
     let mut ret = Vec::new();
 
@@ -59,7 +59,7 @@ where
 
         match src_x_next.cmp(&dest_x_next) {
             Ordering::Greater => {
-                let (left, right) = slice_item(&*src_item, dest_key);
+                let (left, right) = slice_item(*src_item, dest_key);
 
                 ret.push((left, *dest_item));
 
@@ -73,7 +73,7 @@ where
                 dest_x = dest_x_next;
             }
             Ordering::Less => {
-                let (left, right) = slice_item(&*dest_item, src_key);
+                let (left, right) = slice_item(*dest_item, src_key);
 
                 ret.push((*src_item, left));
 
@@ -118,7 +118,7 @@ pub trait SliceItem<K, V> {
 mod tests {
     use super::*;
 
-    #[derive(Debug, PartialEq, Clone, Copy)]
+    #[derive(Debug, PartialEq, Clone)]
     struct Src<'a> {
         key: &'a String,
         qty: i32,
@@ -140,7 +140,7 @@ mod tests {
         }
     }
 
-    #[derive(Debug, PartialEq, Clone, Copy)]
+    #[derive(Debug, PartialEq, Clone)]
     struct Dest<'a> {
         key: &'a String,
         qty: i32,
@@ -182,7 +182,7 @@ mod tests {
                     price: 3
                 },
             ),
-            slice_item(&item, 0)
+            slice_item(item.clone(), 0)
         );
 
         assert_eq!(
@@ -198,7 +198,7 @@ mod tests {
                     price: 2
                 },
             ),
-            slice_item(&item, 1)
+            slice_item(item.clone(), 1)
         );
 
         assert_eq!(
@@ -214,7 +214,7 @@ mod tests {
                     price: 0
                 },
             ),
-            slice_item(&item, 2)
+            slice_item(item.clone(), 2)
         );
     }
 
