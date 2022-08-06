@@ -1,5 +1,5 @@
 [package]
-name = "slicer"
+name = "amount_splitter"
 version = "0.1.0"
 edition = "2021"
 
