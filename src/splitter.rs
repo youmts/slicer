@@ -48,8 +48,8 @@ where
         panic!("Dest must not be empty array.")
     }
 
-    let mut src_item = Box::new(src_item.unwrap());
-    let mut dest_item = Box::new(dest_item.unwrap());
+    let mut src_item = src_item.unwrap();
+    let mut dest_item = dest_item.unwrap();
 
     let mut src_x = V::zero();
     let mut dest_x = V::zero();
@@ -62,13 +62,13 @@ where
 
         match src_x_next.cmp(&dest_x_next) {
             Ordering::Greater => {
-                let (left, right) = split_item(*src_item, dest_key);
+                let (left, right) = split_item(src_item, dest_key);
 
-                ret.push((left, *dest_item));
+                ret.push((left, dest_item));
 
-                src_item = Box::new(right);
+                src_item = right;
                 dest_item = match dest_iter.next() {
-                    Some(item) => Box::new(item),
+                    Some(item) => item,
                     None => break,
                 };
 
@@ -76,28 +76,28 @@ where
                 dest_x = dest_x_next;
             }
             Ordering::Less => {
-                let (left, right) = split_item(*dest_item, src_key);
+                let (left, right) = split_item(dest_item, src_key);
 
-                ret.push((*src_item, left));
+                ret.push((src_item, left));
 
                 src_item = match src_iter.next() {
-                    Some(item) => Box::new(item),
+                    Some(item) => item,
                     None => break,
                 };
-                dest_item = Box::new(right);
+                dest_item = right;
 
                 src_x = src_x_next;
                 dest_x = src_x_next;
             }
             Ordering::Equal => {
-                ret.push((*src_item, *dest_item));
+                ret.push((src_item, dest_item));
 
                 src_item = match src_iter.next() {
-                    Some(item) => Box::new(item),
+                    Some(item) => item,
                     None => break,
                 };
                 dest_item = match dest_iter.next() {
-                    Some(item) => Box::new(item),
+                    Some(item) => item,
                     None => break,
                 };
 
