@@ -3,23 +3,23 @@ use num::Num;
 use std::cmp::Ordering;
 use std::iter::*;
 
-pub fn slice_item<T, V>(item: T, slice_x: V) -> (T, T)
+pub fn split_item<T, V>(item: T, split_x: V) -> (T, T)
 where
-    T: SliceItem<V, V> + Clone + std::fmt::Debug,
+    T: SplitItem<V, V> + Clone + std::fmt::Debug,
     V: Num + Copy,
 {
     let item_x = item.get_key();
 
     let mut left = item.clone();
-    *left.get_mut_key() = slice_x;
+    *left.get_mut_key() = split_x;
     for value in left.get_mut_values().into_iter() {
-        *value = *value * slice_x / item_x;
+        *value = *value * split_x / item_x;
     }
 
     let left_values = left.get_values();
     let mut left_values_iter = left_values.iter();
     let mut right = item;
-    *right.get_mut_key() = item_x - slice_x;
+    *right.get_mut_key() = item_x - split_x;
     for value in right.get_mut_values().into_iter() {
         *value = *value - *left_values_iter.next().unwrap();
     }
@@ -27,10 +27,10 @@ where
     (left, right)
 }
 
-pub fn slice<S, D, V>(src: Vec<S>, dest: Vec<D>) -> Vec<(S, D)>
+pub fn split_all<S, D, V>(src: Vec<S>, dest: Vec<D>) -> Vec<(S, D)>
 where
-    S: SliceItem<V, V> + Clone + std::fmt::Debug,
-    D: SliceItem<V, V> + Clone + std::fmt::Debug,
+    S: SplitItem<V, V> + Clone + std::fmt::Debug,
+    D: SplitItem<V, V> + Clone + std::fmt::Debug,
     V: Num + Copy + Ord,
 {
     let mut ret = Vec::new();
@@ -62,7 +62,7 @@ where
 
         match src_x_next.cmp(&dest_x_next) {
             Ordering::Greater => {
-                let (left, right) = slice_item(*src_item, dest_key);
+                let (left, right) = split_item(*src_item, dest_key);
 
                 ret.push((left, *dest_item));
 
@@ -76,7 +76,7 @@ where
                 dest_x = dest_x_next;
             }
             Ordering::Less => {
-                let (left, right) = slice_item(*dest_item, src_key);
+                let (left, right) = split_item(*dest_item, src_key);
 
                 ret.push((*src_item, left));
 
@@ -110,7 +110,7 @@ where
     ret
 }
 
-pub trait SliceItem<K, V> {
+pub trait SplitItem<K, V> {
     fn get_key(&self) -> K;
     fn get_mut_key(&mut self) -> &mut K;
     fn get_values(&self) -> Vec<V>;
@@ -128,7 +128,7 @@ mod tests {
         price: i32,
     }
 
-    impl SliceItem<i32, i32> for Src<'_> {
+    impl SplitItem<i32, i32> for Src<'_> {
         fn get_key(&self) -> i32 {
             self.qty
         }
@@ -149,7 +149,7 @@ mod tests {
         qty: i32,
     }
 
-    impl SliceItem<i32, i32> for Dest<'_> {
+    impl SplitItem<i32, i32> for Dest<'_> {
         fn get_key(&self) -> i32 {
             self.qty
         }
@@ -165,7 +165,7 @@ mod tests {
     }
 
     #[test]
-    fn slice_item_test() {
+    fn split_item_test() {
         let item = Src {
             key: &"a".to_owned(),
             qty: 2,
@@ -185,7 +185,7 @@ mod tests {
                     price: 3
                 },
             ),
-            slice_item(item.clone(), 0)
+            split_item(item.clone(), 0)
         );
 
         assert_eq!(
@@ -201,7 +201,7 @@ mod tests {
                     price: 2
                 },
             ),
-            slice_item(item.clone(), 1)
+            split_item(item.clone(), 1)
         );
 
         assert_eq!(
@@ -217,12 +217,12 @@ mod tests {
                     price: 0
                 },
             ),
-            slice_item(item.clone(), 2)
+            split_item(item.clone(), 2)
         );
     }
 
     #[test]
-    fn slice_same_range() {
+    fn split_same_range() {
         let key_a = &"a".to_owned();
         let key_b = &"b".to_owned();
         let key_x = &"x".to_owned();
@@ -248,7 +248,7 @@ mod tests {
             Dest { key: key_z, qty: 3 },
         ];
 
-        let result = slice(src, dest);
+        let result = split_all(src, dest);
 
         assert_eq!(
             vec![
