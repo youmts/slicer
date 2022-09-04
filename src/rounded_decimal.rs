@@ -12,7 +12,7 @@ pub struct RoundedDecimal {
 
 type RoundedDecimalParseResult = std::result::Result<RoundedDecimal, Box<dyn error::Error>>;
 
-#[derive(Debug, Clone, PartialEq)]
+#[derive(Debug, Clone, PartialEq, Eq)]
 pub struct RoundedDecimalParseError {
     description: &'static str,
 }
