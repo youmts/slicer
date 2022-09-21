@@ -39,17 +39,17 @@ where
     let mut src_item = src_iter.next().expect("Src must not be empty array.");
     let mut dest_item = dest_iter.next().expect("Dest must not be empty array.");
 
-    let mut src_x = V::zero();
-    let mut dest_x = V::zero();
+    let mut src_key_acc = V::zero();
+    let mut dest_key_acc = V::zero();
 
     let mut ret = Vec::new();
     loop {
         let src_key = src_item.get_key();
         let dest_key = dest_item.get_key();
-        let src_x_next = src_x + src_key;
-        let dest_x_next = dest_x + dest_key;
+        let src_key_acc_next = src_key_acc + src_key;
+        let dest_key_acc_next = dest_key_acc + dest_key;
 
-        match src_x_next.cmp(&dest_x_next) {
+        match src_key_acc_next.cmp(&dest_key_acc_next) {
             Ordering::Greater => {
                 let (left, right) = split_item(src_item, dest_key);
 
@@ -61,8 +61,8 @@ where
                     None => break,
                 };
 
-                src_x = dest_x_next;
-                dest_x = dest_x_next;
+                src_key_acc = dest_key_acc_next;
+                dest_key_acc = dest_key_acc_next;
             }
             Ordering::Less => {
                 let (left, right) = split_item(dest_item, src_key);
@@ -75,8 +75,8 @@ where
                 };
                 dest_item = right;
 
-                src_x = src_x_next;
-                dest_x = src_x_next;
+                src_key_acc = src_key_acc_next;
+                dest_key_acc = src_key_acc_next;
             }
             Ordering::Equal => {
                 ret.push((src_item, dest_item));
@@ -90,8 +90,8 @@ where
                     None => break,
                 };
 
-                src_x = src_x_next;
-                dest_x = dest_x_next;
+                src_key_acc = src_key_acc_next;
+                dest_key_acc = dest_key_acc_next;
             }
         }
     }
