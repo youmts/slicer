@@ -21,7 +21,8 @@ where
     let mut right = item;
     *right.get_mut_key() = item_x - split_x;
     for value in right.get_mut_values().into_iter() {
-        *value = *value - *left_values_iter.next().unwrap();
+        let left = *left_values_iter.next().unwrap();
+        *value = *value - left;
     }
 
     (left, right)
