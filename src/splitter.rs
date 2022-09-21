@@ -5,7 +5,7 @@ use std::iter::*;
 
 pub fn split_item<T, V>(item: T, split_x: V) -> (T, T)
 where
-    T: SplitItem<V, V> + Clone + std::fmt::Debug,
+    T: SplitItem<V> + Clone + std::fmt::Debug,
     V: Num + Copy,
 {
     let item_x = item.get_key();
@@ -29,8 +29,8 @@ where
 
 pub fn split_all<S, D, V>(src: Vec<S>, dest: Vec<D>) -> Vec<(S, D)>
 where
-    S: SplitItem<V, V> + Clone + std::fmt::Debug,
-    D: SplitItem<V, V> + Clone + std::fmt::Debug,
+    S: SplitItem<V> + Clone + std::fmt::Debug,
+    D: SplitItem<V> + Clone + std::fmt::Debug,
     V: Num + Copy + Ord,
 {
     let mut ret = Vec::new();
@@ -110,11 +110,12 @@ where
     ret
 }
 
-pub trait SplitItem<K, V> {
-    fn get_key(&self) -> K;
-    fn get_mut_key(&mut self) -> &mut K;
-    fn get_values(&self) -> Vec<V>;
-    fn get_mut_values(&mut self) -> Vec<&mut V>;
+// TODO: 任意のNum traitを実装する型をKeyやValueの各要素に使えるようにしたい！
+pub trait SplitItem<T> {
+    fn get_key(&self) -> T;
+    fn get_mut_key(&mut self) -> &mut T;
+    fn get_values(&self) -> Vec<T>;
+    fn get_mut_values(&mut self) -> Vec<&mut T>;
 }
 
 #[cfg(test)]
@@ -128,7 +129,7 @@ mod tests {
         price: i32,
     }
 
-    impl SplitItem<i32, i32> for Src<'_> {
+    impl SplitItem<i32> for Src<'_> {
         fn get_key(&self) -> i32 {
             self.qty
         }
@@ -149,7 +150,7 @@ mod tests {
         qty: i32,
     }
 
-    impl SplitItem<i32, i32> for Dest<'_> {
+    impl SplitItem<i32> for Dest<'_> {
         fn get_key(&self) -> i32 {
             self.qty
         }
