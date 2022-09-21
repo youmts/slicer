@@ -1,4 +1,3 @@
-use core::panic;
 use num::Num;
 use std::cmp::Ordering;
 use std::iter::*;
@@ -34,27 +33,16 @@ where
     D: SplitItem<V> + Clone + std::fmt::Debug,
     V: Num + Copy + Ord,
 {
-    let mut ret = Vec::new();
-
     let mut src_iter = src.into_iter();
     let mut dest_iter = dest.into_iter();
 
-    let src_item = src_iter.next();
-    let dest_item = dest_iter.next();
-
-    if src_item.is_none() {
-        panic!("Src must not be empty array.")
-    }
-    if dest_item.is_none() {
-        panic!("Dest must not be empty array.")
-    }
-
-    let mut src_item = src_item.unwrap();
-    let mut dest_item = dest_item.unwrap();
+    let mut src_item = src_iter.next().expect("Src must not be empty array.");
+    let mut dest_item = dest_iter.next().expect("Dest must not be empty array.");
 
     let mut src_x = V::zero();
     let mut dest_x = V::zero();
 
+    let mut ret = Vec::new();
     loop {
         let src_key = src_item.get_key();
         let dest_key = dest_item.get_key();
