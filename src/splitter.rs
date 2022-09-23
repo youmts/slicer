@@ -27,6 +27,15 @@ where
     (left, right)
 }
 
+macro_rules! break_none {
+    ($res:expr) => {
+        match $res {
+            Some(val) => val,
+            None => break,
+        }
+    };
+}
+
 pub fn split_all<S, D, V>(src: Vec<S>, dest: Vec<D>) -> Vec<(S, D)>
 where
     S: SplitItem<V> + Clone + std::fmt::Debug,
@@ -41,7 +50,7 @@ where
 
     let mut key_acc = V::zero();
 
-    let mut ret = Vec::new();
+    let mut result = Vec::new();
     loop {
         let src_key = src_item.get_key();
         let dest_key = dest_item.get_key();
@@ -51,48 +60,31 @@ where
         match src_key_acc_next.cmp(&dest_key_acc_next) {
             Ordering::Greater => {
                 let (left, right) = split_item(src_item, dest_key);
-
-                ret.push((left, dest_item));
+                result.push((left, dest_item));
 
                 src_item = right;
-                dest_item = match dest_iter.next() {
-                    Some(item) => item,
-                    None => break,
-                };
-
+                dest_item = break_none!(dest_iter.next());
                 key_acc = dest_key_acc_next;
             }
             Ordering::Less => {
                 let (left, right) = split_item(dest_item, src_key);
+                result.push((src_item, left));
 
-                ret.push((src_item, left));
-
-                src_item = match src_iter.next() {
-                    Some(item) => item,
-                    None => break,
-                };
+                src_item = break_none!(src_iter.next());
                 dest_item = right;
-
                 key_acc = src_key_acc_next;
             }
             Ordering::Equal => {
-                ret.push((src_item, dest_item));
+                result.push((src_item, dest_item));
 
-                src_item = match src_iter.next() {
-                    Some(item) => item,
-                    None => break,
-                };
-                dest_item = match dest_iter.next() {
-                    Some(item) => item,
-                    None => break,
-                };
-
+                src_item = break_none!(src_iter.next());
+                dest_item = break_none!(dest_iter.next());
                 key_acc = src_key_acc_next;
             }
         }
     }
 
-    ret
+    result
 }
 
 // TODO: 任意のNum traitを実装する型をKeyやValueの各要素に使えるようにしたい！
