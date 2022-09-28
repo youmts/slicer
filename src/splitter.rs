@@ -2,6 +2,7 @@ use num::Num;
 use std::cmp::Ordering;
 use std::iter::*;
 
+/// Split one Item at a Certain Position
 pub fn split_item<T, V>(item: T, split_x: V) -> (T, T)
 where
     T: SplitItem<V> + Clone + std::fmt::Debug,
@@ -36,6 +37,7 @@ macro_rules! break_none {
     };
 }
 
+/// Split src items and dest items each other.
 pub fn split_all<S, D, V>(src: Vec<S>, dest: Vec<D>) -> Vec<(S, D)>
 where
     S: SplitItem<V> + Clone + std::fmt::Debug,
@@ -45,8 +47,8 @@ where
     let mut src_iter = src.into_iter();
     let mut dest_iter = dest.into_iter();
 
-    let mut src_item = src_iter.next().expect("Src must not be empty array.");
-    let mut dest_item = dest_iter.next().expect("Dest must not be empty array.");
+    let mut src_item = src_iter.next().expect("Src must not be empty.");
+    let mut dest_item = dest_iter.next().expect("Dest must not be empty.");
 
     let mut key_acc = V::zero();
 
@@ -87,7 +89,7 @@ where
     result
 }
 
-// TODO: 任意のNum traitを実装する型をKeyやValueの各要素に使えるようにしたい！
+// TODO: Use Num trait for each Key or Value element
 pub trait SplitItem<T> {
     fn get_key(&self) -> T;
     fn get_mut_key(&mut self) -> &mut T;
@@ -146,19 +148,19 @@ mod tests {
     /// target:
     /// |       qty  : 2      |
     /// |       price: 3      |
-    /// 
+    ///
     /// #1 split at qty:0
     /// | qty  : 0 | qty  : 2 |
     /// | price: 0 | price: 0 |
-    /// 
+    ///
     /// #2 split at qty:1
     /// | qty  : 1 | qty  : 1 |
     /// | price: 1 | price: 2 |
-    /// 
+    ///
     /// #3 split at qty:2
     /// | qty  : 2 | qty  : 0 |
     /// | price: 3 | price: 0 |
-    /// 
+    ///
     fn test_split_item() {
         let item = Src {
             key: &"a".to_owned(),
@@ -222,11 +224,11 @@ mod tests {
     ///
     /// dest:
     /// |   qty  :  3  |       qty  :  4        |   qty:  3   |
-    /// 
+    ///
     /// result:
     /// |   qty  :  3  | qty  :  2 |   qty:  2  |   qty:  3   |
     /// |   price: 30  | price: 21 | price: 40  | price: 61   |
-    /// 
+    ///
     #[test]
     fn test_split_all_same_range() {
         let key_a = &"a".to_owned();
