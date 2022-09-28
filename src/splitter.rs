@@ -143,13 +143,30 @@ mod tests {
     }
 
     #[test]
-    fn split_item_test() {
+    /// target:
+    /// |       qty  : 2      |
+    /// |       price: 3      |
+    /// 
+    /// #1 split at qty:0
+    /// | qty  : 0 | qty  : 2 |
+    /// | price: 0 | price: 0 |
+    /// 
+    /// #2 split at qty:1
+    /// | qty  : 1 | qty  : 1 |
+    /// | price: 1 | price: 2 |
+    /// 
+    /// #3 split at qty:2
+    /// | qty  : 2 | qty  : 0 |
+    /// | price: 3 | price: 0 |
+    /// 
+    fn test_split_item() {
         let item = Src {
             key: &"a".to_owned(),
             qty: 2,
             price: 3,
         };
 
+        // #1
         assert_eq!(
             (
                 Src {
@@ -199,8 +216,19 @@ mod tests {
         );
     }
 
+    /// src:
+    /// |       qty  :  5          |       qty  :   5         |
+    /// |       price: 51          |       price: 101         |
+    ///
+    /// dest:
+    /// |   qty  :  3  |       qty  :  4        |   qty:  3   |
+    /// 
+    /// result:
+    /// |   qty  :  3  | qty  :  2 |   qty:  2  |   qty:  3   |
+    /// |   price: 30  | price: 21 | price: 40  | price: 61   |
+    /// 
     #[test]
-    fn split_same_range() {
+    fn test_split_all_same_range() {
         let key_a = &"a".to_owned();
         let key_b = &"b".to_owned();
         let key_x = &"x".to_owned();
