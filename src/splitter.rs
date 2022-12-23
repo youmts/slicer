@@ -151,7 +151,7 @@ mod tests {
     ///
     /// #1 split at qty:0
     /// | qty  : 0 | qty  : 2 |
-    /// | price: 0 | price: 0 |
+    /// | price: 0 | price: 3 |
     ///
     /// #2 split at qty:1
     /// | qty  : 1 | qty  : 1 |
